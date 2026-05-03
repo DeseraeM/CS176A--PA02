@@ -14,6 +14,10 @@ class FileReader:
         """
         Returns a binary string of the file contents, or None.
         """
+        if filepath == file{
+            return 
+        }
+        filepath = open("filepath.txt", "r")
         return None
 
     def head(self, filepath, cookies):
