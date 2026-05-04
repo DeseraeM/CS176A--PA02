@@ -20,7 +20,7 @@ from file_reader import FileReader
 
 #1. HTTP request parse
 #\r\n\r\n means the end of a header and the \r\n is used for all the other lines 
-def req(data):
+def req(data,file_reader):
    # incoming = (
     #    "GET /Mymethod/file_path HTTP/1.1\r\n"
      #   "Host: address\r\n"
@@ -31,7 +31,6 @@ def req(data):
     header_e = data.find('\r\n\r\n')
     if header_e <= -1:
             return "400"
-
     else:
         header = data[:header_e]
         lines = header.split('\r\n')
@@ -47,9 +46,10 @@ def req(data):
             key = new_header[0].strip()
             val = new_header[1].strip()
             print('{}: {}'.format(key,val))
-
+        feedback = respondB(request[1], file_reader)
+        return feedback
 #select.select() loop
-def selectS(s):
+def selectS(s,file_reader):
     info = [s]
     output = []
     messages = {}
@@ -65,7 +65,11 @@ def selectS(s):
                 data = sock.recv(1024)
                 if data:
                     messages[sock] += data
-                    req(data)
+                    messageO= req(data,file_reader)
+                    if isinstance(messageO,bytes):
+                        sock.send(messageO)
+                    else:
+                        sock.send(messageO.encode('utf-8'))
                     if sock not in output:
                         output.append(sock)
                 else:
@@ -80,7 +84,7 @@ def selectS(s):
             messages.pop(sock,"")
 
 #3. HTTP response builder 
-def respondB(data):
+def respondB(file_path,file_reader):
     #incoming = (
      #   "HTTP/1.1 200 OK\r\n"
       #  "Connection: close\r\n"
@@ -90,6 +94,23 @@ def respondB(data):
         #"Content-Length: Length\r\n" 
         #"Content-Type: Type\r\n\r\n" 
     #)
+    status = "HTTP/1.1 200 OK"
+    contentL = file_reader.head(file_path)
+    pathType = os.path.splitext(file_path)
+    mType = ""
+    if pathType[1] == '.html':
+        mType = "text/html"
+    elif  pathType[1] == '.css':
+        mType = "text/ccs"
+    elif  pathType[1] == '.png':
+        mType = "image/png"
+    elif  pathType[1] == '.jpeg':
+        mType = "image/jpeg"
+    bodyT = file_reader.get(file_path)
+    word = f"{status}\r\nContent-Type: {mType}\r\nContent-Length: {contentL}\r\n\r\n".encode() + bodyT
+    return word
+        
+        
     response_H = data.find('\r\n\r\n')
     if response_H <= -1:
         return "400"
@@ -120,10 +141,10 @@ def main():
     file_reader = FileReader(file_path)
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # allows reuse of port immediately after server restart
+    s.setsockopt(socket.SOL_SOCKETh, socket.SO_REUSEADDR, 1)  # allows reuse of port immediately after server restart
     s.bind(("0.0.0.0", port))
     s.listen(50)
-    selectS(s)
+    selectS(s,file_reader) 
 
 
 if __name__ == "__main__":
