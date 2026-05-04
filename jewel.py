@@ -117,7 +117,7 @@ def respondB(file_path,file_reader, cookies):
         mType = "text/css"
     elif  pathType[1] == '.png':
         mType = "image/png"
-    elif  pathType[1] == '.jpeg':
+    elif  pathType[1] == '.jpeg' || pathType[1] == '.jpg':
         mType = "image/jpeg"
     bodyT = file_reader.get(file_path,cookies)
     if bodyT is None:
