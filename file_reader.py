@@ -7,8 +7,8 @@
 #   head() — same logic as get(), but return the byte count (int) instead
 #            of the contents, or None if the path does not exist
 class FileReader:
-    def __init__(self):
-        pass
+    def __init__(self,file_path):
+        self.file_path = file_path
 
     def get(self, filepath, cookies):
         """
@@ -18,8 +18,9 @@ class FileReader:
         if os.path.exists(filepath):
             if os.path.isfile(filepath):
                 read = open(filepath,"rb")
+                fileC = read.read()
                 read.close()
-                return read.read()
+                return fileC
             if os.path.isdir(filepath):
                 result = ""
                 directoryF = os.listdir(filepath)

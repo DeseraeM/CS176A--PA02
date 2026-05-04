@@ -18,23 +18,6 @@ import select
 
 from file_reader import FileReader
 
-
-def main():
-    port = int(sys.argv[1])
-    file_path = sys.argv[2]
-
-    file_reader = FileReader(file_path)
-
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # allows reuse of port immediately after server restart
-    s.bind(("0.0.0.0", port))
-    s.listen(50)
-    selectS(s)
-
-
-if __name__ == "__main__":
-    main()
-
 #1. HTTP request parse
 #\r\n\r\n means the end of a header and the \r\n is used for all the other lines 
 def req(data):
@@ -129,3 +112,19 @@ def respondB(data):
     #    return "404"
     #if request[0] != 'GET':
      #   return "501 Method Unimplemented"
+
+def main():
+    port = int(sys.argv[1])
+    file_path = sys.argv[2]
+
+    file_reader = FileReader(file_path)
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # allows reuse of port immediately after server restart
+    s.bind(("0.0.0.0", port))
+    s.listen(50)
+    selectS(s)
+
+
+if __name__ == "__main__":
+    main()
