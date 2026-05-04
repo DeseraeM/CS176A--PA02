@@ -22,13 +22,6 @@ from file_reader import FileReader
 #1. HTTP request parse
 #\r\n\r\n means the end of a header and the \r\n is used for all the other lines 
 def req(data,file_reader):
-   # incoming = (
-    #    "GET /Mymethod/file_path HTTP/1.1\r\n"
-     #   "Host: address\r\n"
-      #  "Port: connection\r\n"
-       # "User: client\r\n"
-       # "MyHeader: MyValue\r\n\r\n" 
-    #)
     header_e = data.find(b'\r\n\r\n')
     if header_e <= -1:
             return error(400)
@@ -95,15 +88,6 @@ def selectS(s,file_reader):
 #3. HTTP response builder 
 def respondB(file_path,file_reader, cookies):
     print("inside respondB, file_path =", file_path)
-    #incoming = (
-     #   "HTTP/1.1 200 OK\r\n"
-      #  "Connection: close\r\n"
-       # "User: client\r\n"
-       # "Server: server\r\n" 
-       # "Last-Modified: Modified\r\n"
-        #"Content-Length: Length\r\n" 
-        #"Content-Type: Type\r\n\r\n" 
-    #)
     status = "HTTP/1.1 200 OK"
     file_path_d = file_path.decode('utf-8')
     contentL = file_reader.head(file_path, cookies)
@@ -124,7 +108,8 @@ def respondB(file_path,file_reader, cookies):
         return error(404)
     word = f"{status}\r\nContent-Type: {mType}\r\nContent-Length: {contentL}\r\n\r\n".encode() + bodyT
     return word
-#Full error handling -- have a true or false and then return the number assoicated with it.
+
+#Full error handling 
 def error(code):
     messagesE = {400 : "Bad Request", 404: "Not Found", 501: "501 Method Unimplemented"}
     stat = f"HTTP/1.1 {code} {messagesE.get(code)}"
