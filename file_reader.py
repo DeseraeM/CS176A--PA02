@@ -17,7 +17,7 @@ class FileReader:
         Returns a binary string of the file contents, or None.
         """
         #checks if its a file
-        decodeFile = file_path.decode()
+        decodeFile = file_path.decode().lstrip('/')
         joined = os.path.join(self.file_path, decodeFile)
         if os.path.exists(joined):
             if os.path.isfile(joined):
@@ -26,11 +26,7 @@ class FileReader:
                 read.close()
                 return fileC
             if os.path.isdir(joined):
-                result = ""
-                directoryF = os.listdir(joined)
-                for d in directoryF:
-                    result += f"<li> {d} </li>"
-                return f"<html><body><ul> {result} </ul></body></html>".encode()
+                return f"<html><body><h1> {file_path.decode()} </h1></body></html>".encode()
         else: 
             return None
 
@@ -38,7 +34,7 @@ class FileReader:
         """
         Returns the size to be returned, or None.
         """
-        decodeFile = file_path.decode()
+        decodeFile = file_path.decode().lstrip('/')
         joined = os.path.join(self.file_path, decodeFile)
         if os.path.exists(joined):
             if os.path.isfile(joined): 
@@ -47,6 +43,7 @@ class FileReader:
                 read.close()
                 return size
             if os.path.isdir(joined):
-                return len(self.get(joined.encode(), cookies))
+                return len(self.get(file_path, cookies))
         else:
             return None
+
