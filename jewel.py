@@ -21,7 +21,7 @@ from file_reader import FileReader
 
 #1. HTTP request parse
 #\r\n\r\n means the end of a header and the \r\n is used for all the other lines 
-def req(data,file_reader,cookies):
+def req(data,file_reader):
    # incoming = (
     #    "GET /Mymethod/file_path HTTP/1.1\r\n"
      #   "Host: address\r\n"
@@ -31,29 +31,34 @@ def req(data,file_reader,cookies):
     #)
     header_e = data.find(b'\r\n\r\n')
     if header_e <= -1:
-            return "400"
+            return error(400)
     else:
         header = data[:header_e]
         lines = header.split(b'\r\n')
         request = lines[0].split()
+        if len(request) < 3:
+            return error(400)
         if not request[1]:
-            return "404"
+            return error(404)
         if request[0] != b'GET':
-            return "501 Method Unimplemented"
+            return error(501)
         headerL = lines[1:]
         print(request)
         c_cookies = []
         for h in headerL:
-            new_header = h.split(':')
-            key = new_header[0].strip()
-            val = new_header[1].strip()
-            if key == "Cookies":
-                c_cookies.append(val)
+            if b':' in h:
+                new_header = h.partition(b':')
+                key = new_header[0].strip()
+                val = new_header[2].strip()
+                if key == b"Cookies":
+                    c_cookies.append(val)
             print('{}: {}'.format(key,val))
+        print("calling respondB with", request[1])
         feedback = respondB(request[1], file_reader, c_cookies)
+        print("respondB returned", feedback)
         return feedback
 #select.select() loop
-def selectS(s,file_reader, cookies): 
+def selectS(s,file_reader): 
     info = [s]
     output = []
     messages = {}
@@ -69,13 +74,11 @@ def selectS(s,file_reader, cookies):
                 data = sock.recv(1024)
                 if data:
                     messages[sock] += data
-                    messageO= req(data,file_reader)
+                    messageO= req(messages[sock],file_reader)
                     if isinstance(messageO,bytes):
                         sock.send(messageO)
                     else:
                         sock.send(messageO.encode('utf-8'))
-                    if sock not in output:
-                        output.append(sock)
                 else:
                     info.remove(sock)
                     messages.pop(sock,"")
@@ -89,6 +92,7 @@ def selectS(s,file_reader, cookies):
 
 #3. HTTP response builder 
 def respondB(file_path,file_reader, cookies):
+    print("inside respondB, file_path =", file_path)
     #incoming = (
      #   "HTTP/1.1 200 OK\r\n"
       #  "Connection: close\r\n"
@@ -99,28 +103,31 @@ def respondB(file_path,file_reader, cookies):
         #"Content-Type: Type\r\n\r\n" 
     #)
     status = "HTTP/1.1 200 OK"
+    file_path_d = file_path.decode('utf-8')
     contentL = file_reader.head(file_path, cookies)
-    pathType = os.path.splitext(file_path)
-    mType = ""
+    if contentL is None:
+        return error(404)
+    pathType = os.path.splitext(file_path_d)
+    mType = "text/plain"
     if pathType[1] == '.html':
         mType = "text/html"
     elif  pathType[1] == '.css':
-        mType = "text/ccs"
+        mType = "text/css"
     elif  pathType[1] == '.png':
         mType = "image/png"
     elif  pathType[1] == '.jpeg':
         mType = "image/jpeg"
     bodyT = file_reader.get(file_path,cookies)
+    if bodyT is None:
+        return error(404)
     word = f"{status}\r\nContent-Type: {mType}\r\nContent-Length: {contentL}\r\n\r\n".encode() + bodyT
     return word
 #Full error handling -- have a true or false and then return the number assoicated with it.
-#def error():
- #  if respond_H <= -1:
-  #      return "400"
-   # if not request[1]:
-    #    return "404"
-    #if request[0] != 'GET':
-     #   return "501 Method Unimplemented"
+def error(code):
+    messagesE = {400 : "Bad Request", 404: "Not Found", 501: "501 Method Unimplemented"}
+    stat = f"HTTP/1.1 {code} {messagesE.get(code)}"
+    bodyE = f"<h1> {code} {messagesE.get(code)}<h1>".encode()
+    return f"{stat}\r\n Content-Type: text/html\r\n Content-Length: {len(bodyE)}\r\n\r\n".encode() +bodyE
 
 def main():
     port = int(sys.argv[1])

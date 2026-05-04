@@ -17,7 +17,8 @@ class FileReader:
         Returns a binary string of the file contents, or None.
         """
         #checks if its a file
-        joined = os.path.join(self.file_path, file_path)
+        decodeFile = file_path.decode()
+        joined = os.path.join(self.file_path, decodeFile)
         if os.path.exists(joined):
             if os.path.isfile(joined):
                 read = open(joined,"rb")
@@ -37,7 +38,8 @@ class FileReader:
         """
         Returns the size to be returned, or None.
         """
-        joined = os.path.join(self.file_path, file_path)
+        decodeFile = file_path.decode()
+        joined = os.path.join(self.file_path, decodeFile)
         if os.path.exists(joined):
             if os.path.isfile(joined): 
                 read = open(joined,"rb")
@@ -45,6 +47,6 @@ class FileReader:
                 read.close()
                 return size
             if os.path.isdir(joined):
-                return len(self.get(joined, cookies))
+                return len(self.get(joined.encode(), cookies))
         else:
             return None
