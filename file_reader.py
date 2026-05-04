@@ -6,6 +6,8 @@
 #              • if it does not exist, return None
 #   head() — same logic as get(), but return the byte count (int) instead
 #            of the contents, or None if the path does not exist
+import os
+
 class FileReader:
     def __init__(self,file_path):
         self.file_path = file_path
@@ -41,6 +43,6 @@ class FileReader:
                 read.close()
                 return size
             if os.path.isdir(filepath):
-                return len(self.get(filepath))
+                return len(self.get(filepath, cookies))
         else:
             return None

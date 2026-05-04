@@ -15,12 +15,13 @@
 import socket
 import sys
 import select
+import os
 
 from file_reader import FileReader
 
 #1. HTTP request parse
 #\r\n\r\n means the end of a header and the \r\n is used for all the other lines 
-def req(data,file_reader):
+def req(data,file_reader,cookies):
    # incoming = (
     #    "GET /Mymethod/file_path HTTP/1.1\r\n"
      #   "Host: address\r\n"
@@ -28,7 +29,7 @@ def req(data,file_reader):
        # "User: client\r\n"
        # "MyHeader: MyValue\r\n\r\n" 
     #)
-    header_e = data.find('\r\n\r\n')
+    header_e = data.find(b'\r\n\r\n')
     if header_e <= -1:
             return "400"
     else:
@@ -41,12 +42,15 @@ def req(data,file_reader):
             return "501 Method Unimplemented"
         headerL = lines[1:]
         print(request)
+        c_cookies = []
         for h in headerL:
             new_header = h.split(':')
             key = new_header[0].strip()
             val = new_header[1].strip()
+            if key == "Cookies":
+                c_cookies.append(val)
             print('{}: {}'.format(key,val))
-        feedback = respondB(request[1], file_reader)
+        feedback = respondB(request[1], file_reader, c_cookies)
         return feedback
 #select.select() loop
 def selectS(s,file_reader):
@@ -60,7 +64,7 @@ def selectS(s,file_reader):
                 connection, address = s.accept()
                 print('new connection from', address, connection)
                 info.append(connection)
-                messages[connection]= ""
+                messages[connection]= b""
             else:
                 data = sock.recv(1024)
                 if data:
@@ -84,7 +88,7 @@ def selectS(s,file_reader):
             messages.pop(sock,"")
 
 #3. HTTP response builder 
-def respondB(file_path,file_reader):
+def respondB(file_path,file_reader, cookies):
     #incoming = (
      #   "HTTP/1.1 200 OK\r\n"
       #  "Connection: close\r\n"
@@ -95,7 +99,7 @@ def respondB(file_path,file_reader):
         #"Content-Type: Type\r\n\r\n" 
     #)
     status = "HTTP/1.1 200 OK"
-    contentL = file_reader.head(file_path)
+    contentL = file_reader.head(file_path, cookies)
     pathType = os.path.splitext(file_path)
     mType = ""
     if pathType[1] == '.html':
@@ -106,25 +110,9 @@ def respondB(file_path,file_reader):
         mType = "image/png"
     elif  pathType[1] == '.jpeg':
         mType = "image/jpeg"
-    bodyT = file_reader.get(file_path)
+    bodyT = file_reader.get(file_path,cookies)
     word = f"{status}\r\nContent-Type: {mType}\r\nContent-Length: {contentL}\r\n\r\n".encode() + bodyT
     return word
-        
-        
-    response_H = data.find('\r\n\r\n')
-    if response_H <= -1:
-        return "400"
-    else:
-        header_R = data[:response_H]
-        lines = header_R.split('\r\n')
-        requestR = lines[0].split()
-        r = lines[1:]
-        print(requestR)
-        for respond in r:
-            new_r = respond.split(':')
-            key = new_r[0].strip()
-            val = new_r[1].strip()
-            print('{}: {}'.format(key,val))
 #Full error handling -- have a true or false and then return the number assoicated with it.
 #def error():
  #  if respond_H <= -1:
