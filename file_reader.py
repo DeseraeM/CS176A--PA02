@@ -12,37 +12,39 @@ class FileReader:
     def __init__(self,file_path):
         self.file_path = file_path
 
-    def get(self, filepath, cookies):
+    def get(self, file_path, cookies):
         """
         Returns a binary string of the file contents, or None.
         """
         #checks if its a file
-        if os.path.exists(filepath):
-            if os.path.isfile(filepath):
-                read = open(filepath,"rb")
+        joined = os.path.join(self.file_path, file_path)
+        if os.path.exists(joined):
+            if os.path.isfile(joined):
+                read = open(joined,"rb")
                 fileC = read.read()
                 read.close()
                 return fileC
-            if os.path.isdir(filepath):
+            if os.path.isdir(joined):
                 result = ""
-                directoryF = os.listdir(filepath)
+                directoryF = os.listdir(joined)
                 for d in directoryF:
                     result += f"<li> {d} </li>"
-                return f"<html><body><ul> {result} </ul></body></html>"
+                return f"<html><body><ul> {result} </ul></body></html>".encode()
         else: 
             return None
 
-    def head(self, filepath, cookies):
+    def head(self, file_path, cookies):
         """
         Returns the size to be returned, or None.
         """
-        if os.path.exists(filepath):
-            if os.path.isfile(filepath): 
-                read = open(filepath,"rb")
+        joined = os.path.join(self.file_path, file_path)
+        if os.path.exists(joined):
+            if os.path.isfile(joined): 
+                read = open(joined,"rb")
                 size = len(read.read())
                 read.close()
                 return size
-            if os.path.isdir(filepath):
-                return len(self.get(filepath, cookies))
+            if os.path.isdir(joined):
+                return len(self.get(joined, cookies))
         else:
             return None

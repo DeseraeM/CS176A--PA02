@@ -34,11 +34,11 @@ def req(data,file_reader,cookies):
             return "400"
     else:
         header = data[:header_e]
-        lines = header.split('\r\n')
+        lines = header.split(b'\r\n')
         request = lines[0].split()
         if not request[1]:
             return "404"
-        if request[0] != 'GET':
+        if request[0] != b'GET':
             return "501 Method Unimplemented"
         headerL = lines[1:]
         print(request)
@@ -53,7 +53,7 @@ def req(data,file_reader,cookies):
         feedback = respondB(request[1], file_reader, c_cookies)
         return feedback
 #select.select() loop
-def selectS(s,file_reader):
+def selectS(s,file_reader, cookies): 
     info = [s]
     output = []
     messages = {}
