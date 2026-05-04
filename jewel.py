@@ -52,7 +52,7 @@ def req(data,file_reader):
                 val = new_header[2].strip()
                 if key == b"Cookies":
                     c_cookies.append(val)
-            print('{}: {}'.format(key,val))
+                print('{}: {}'.format(key,val))
         print("calling respondB with", request[1])
         feedback = respondB(request[1], file_reader, c_cookies)
         print("respondB returned", feedback)
@@ -74,11 +74,13 @@ def selectS(s,file_reader):
                 data = sock.recv(1024)
                 if data:
                     messages[sock] += data
-                    messageO= req(messages[sock],file_reader)
-                    if isinstance(messageO,bytes):
-                        sock.send(messageO)
-                    else:
-                        sock.send(messageO.encode('utf-8'))
+                    if b'\r\n\r\n' in messages[sock]:
+                        messageO= req(messages[sock],file_reader)
+                        if isinstance(messageO,bytes):
+                            sock.send(messageO)
+                        else:
+                            sock.send(messageO.encode('utf-8'))
+                        messages[sock] = b""
                 else:
                     info.remove(sock)
                     messages.pop(sock,"")
