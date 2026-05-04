@@ -80,6 +80,9 @@ def selectS(s):
                 messages[connection]= ""
             else:
                 data = sock.recv(1024)
+                if data:
+                    messages[sock] += data
+                    req(data)
                     if sock not in output:
                         output.append(sock)
                 else:
@@ -119,10 +122,10 @@ def respondB(data):
             val = new_r[1].strip()
             print('{}: {}'.format(key,val))
 #Full error handling -- have a true or false and then return the number assoicated with it.
-def error():
-   if respond_H <= -1:
-        return "400"
-    if not request[1]:
-        return "404"
-    if request[0] != 'GET':
-        return "501 Method Unimplemented"
+#def error():
+ #  if respond_H <= -1:
+  #      return "400"
+   # if not request[1]:
+    #    return "404"
+    #if request[0] != 'GET':
+     #   return "501 Method Unimplemented"
